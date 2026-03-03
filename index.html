@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ARM BET BETTING</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #121212;
+            --bg-hover: #1a1a1a;
+            --accent: #ffffff;
+            --text-primary: #ffffff;
+            --text-secondary: #8a8a8a;
+            --text-muted: #4a4a4a;
+            --border: #1f1f1f;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --live: #ef4444;
+        }
+        
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, rgba(10,10,10,0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px; text-transform: uppercase;
+            background: var(--accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        
+        .balance {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .balance-icon {
+            font-size: 18px;
+        }
+        
+        .balance-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        /* Navigation */
+        .nav {
+            display: flex;
+            gap: 8px;
+            padding: 16px 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .nav::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-btn.active {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+        }
+        
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Container */
+        .container {
+            padding: 0 20px 100px;
+        }
+        
+        /* Match Card */
+        .match-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .match-card:active {
+            transform: scale(0.98);
+            background: var(--bg-card-hover);
+        }
+        
+        .match-card:active::before {
+            opacity: 1;
+        }
+        
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .match-league {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--live);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--live);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        
+        .teams {
+            margin-bottom: 20px;
+        }
+        
+        .team {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+        }
+        
+        .team-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .team-emoji {
+            font-size: 32px;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+        }
+        
+        .team-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .team-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-secondary);
+            min-width: 30px;
+            text-align: right;
+        }
+        
+        .odds-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .odds-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .odds-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
+            border-color: rgba(255, 215, 0, 0.4);
+        }
+        
+        .odds-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
+        .odds-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        
+        .bet-distribution {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .bet-dist-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .bet-dist-bar {
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .bet-dist-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .bet-dist-values {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+        }
+        
+        .bet-dist-value {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 20px;
+            z-index: 100;
+        }
+        
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 8px 16px;
+        }
+        
+        .bottom-nav-item.active {
+            color: var(--accent);
+        }
+        
+        .bottom-nav-item:active {
+            transform: scale(0.9);
+        }
+        
+        .bottom-nav-icon {
+            font-size: 22px;
+        }
+        
+        .bottom-nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        /* Bet Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: flex-end;
+            z-index: 200;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 24px 24px 0 0;
+            padding: 24px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 800;
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bet-input-group {
+            margin-bottom: 20px;
+        }
+        
+        .bet-input-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .bet-input {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 700;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .bet-input:focus {
+            border-color: var(--accent);
+        }
+        
+        .bet-quick-amounts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .quick-amount-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .quick-amount-btn:active {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+            transform: scale(0.95);
+        }
+        
+        .bet-summary {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .bet-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+        
+        .bet-summary-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .bet-summary-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .bet-summary-value.highlight {
+            font-size: 20px;
+            color: var(--accent);
+        }
+        
+        .submit-bet-btn { font-family: 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: 1px;
+            width: 100%;
+            background: var(--accent);
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            color: var(--bg-primary);
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .submit-bet-btn:active {
+            transform: scale(0.98);
+            filter: brightness(1.1);
+        }
+        
+        .submit-bet-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Профиль */
+        .profile-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(26, 26, 26, 0.5) 100%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent) 0%, #ff8800 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--bg-primary);
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-name {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        
+        .profile-status {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        
+        .empty-text {
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">ARM BET</div>
+        <div class="balance">
+            <span class="balance-icon"></span>
+            <span class="balance-amount" id="userБаланс">0</span>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="nav" id="nav">
+        <button class="nav-btn active" data-view="matches"> Матчи</button>
+        <button class="nav-btn" data-view="my-bets"> Ставки</button>
+        <button class="nav-btn" data-view="leaderboard"> Топ</button>
+        <button class="nav-btn" data-view="profile"> Профиль</button>
+    </div>
+    
+    <!-- Container -->
+    <div class="container" id="content">
+        <div class="loading">
+            <div class="spinner"></div>
+            <div>Loading...</div>
+        </div>
+    </div>
+    
+    <!-- Bet Modal -->
+    <div class="modal" id="betModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Сделать ставку</div>
+                <button class="modal-close" onclick="closeBetModal()">×</button>
+            </div>
+            
+            <div id="betModalContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Telegram WebApp API
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+        
+        // User data from Telegram
+        const user = tg.initDataUnsafe.user || {
+            id: 123456789,
+            first_name: "Test",
+            username: "testuser"
+        };
+        
+        // State
+        let currentView = 'matches';
+        let userData = {
+            balance: 500,
+            user_id: user.id,
+            username: user.username || user.first_name
+        };
+        let matchesData = [];
+        let myСтавкиData = [];
+        let leaderboardData = [];
+        let currentBet = {};
+        
+        // Initialize
+        async function init() {
+            await loadUserData();
+            await loadМатчи();
+            renderView('matches');
+            setupEventListeners();
+        }
+        
+        // Load user data
+        async function loadUserData() {
+            try {
+                // В реальности это запрос к боту
+                // const response = await fetch(`/api/user?user_id=${user.id}`);
+                // userData = await response.json();
+                
+                // Пока симулируем
+                userData.balance = 500;
+                document.getElementById('userБаланс').textContent = userData.balance;
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+        
+        // Load matches
+        async function loadМатчи() {
+            try {
+                // В реальности это запрос к боту
+                // const response = await fetch('/api/matches');
+                // matchesData = await response.json();
+                
+                // Пока симулируем данные
+                matchesData = [
+                    {
+                        match_id: 1,
+                        team1: { name: 'Earth Gaming', emoji: '', team_id: 1 },
+                        team2: { name: 'Legion Gaming', emoji: '', team_id: 2 },
+                        odds1: 2.5,
+                        odds2: 1.42,
+                        league: 'CCT Season 2: SA Series #3',
+                        status: 'live',
+                        score: { team1: 13, team2: 8 },
+                        bet_distribution: { team1: 8, team2: 92 }
+                    },
+                    {
+                        match_id: 2,
+                        team1: { name: 'Knights', emoji: '', team_id: 3 },
+                        team2: { name: 'НЕТСТРАХА', emoji: '', team_id: 4 },
+                        odds1: 1.95,
+                        odds2: 1.7,
+                        league: 'Esports League Super Cup Pro',
+                        status: 'upcoming',
+                        bet_distribution: { team1: 45, team2: 55 }
+                    },
+                    {
+                        match_id: 3,
+                        team1: { name: 'Nethercore', emoji: '', team_id: 5 },
+                        team2: { name: 'Teiko', emoji: '', team_id: 6 },
+                        odds1: 1.63,
+                        odds2: 2.08,
+                        league: 'Ultras Dota Pro',
+                        status: 'upcoming',
+                        bet_distribution: { team1: 62, team2: 38 }
+                    }
+                ];
+            } catch (error) {
+                console.error('Error loading matches:', error);
+            }
+        }
+        
+        // Render view
+        function renderView(view) {
+            currentView = view;
+            const content = document.getElementById('content');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+            
+            switch(view) {
+                case 'matches':
+                    content.innerHTML = renderМатчи();
+                    break;
+                case 'my-bets':
+                    content.innerHTML = renderMyСтавки();
+                    break;
+                case 'leaderboard':
+                    content.innerHTML = renderLeaderboard();
+                    break;
+                case 'profile':
+                    content.innerHTML = renderПрофиль();
+                    break;
+            }
+        }
+        
+        // Render matches
+        function renderМатчи() {
+            if (matchesData.length === 0) {
+                return `
+                    <div class="empty-state">
+                        <div class="empty-icon"></div>
+                        <div class="empty-text">No Матчи Available</div>
+                    </div>
+                `;
+            }
+            
+            return matchesData.map(match => `
+                <div class="match-card" onclick="openBetModal(${match.match_id})">
+                    <div class="match-header">
+                        <div class="match-league">${match.league}</div>
+                        ${match.status === 'live' ? `
+                            <div class="live-badge">
+                                <div class="live-dot"></div>
+                                В ЭФИРЕ
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="teams">
+                        <div class="team">
+                            <div class="team-info">
+                                <div class="team-emoji">${match.team1.emoji}</div>
+                                <div class="team-name">${match.team1.name}</div>
+                            </div>
+                            ${match.score ? `<div class="team-score">${match.score.team1}</div>` : ''}
+                        </div>
+                        <div class="team">
+                            <div class="team-info">
+                                <div class="team-emoji">${match.team2.emoji}</div>
+                                <div class="team-name">${match.team2.name}</div>
+                            </div>
+                            ${match.score ? `<div class="team-score">${match.score.team2}</div>` : ''}
+                        </div>
+                    </div>
+                    
+                    ${match.status === 'upcoming' ? `
+                        <div class="odds-container">
+                            <div class="odds-btn" onclick="event.stopPropagation(); selectTeam(${match.match_id}, ${match.team1.team_id})">
+                                <div class="odds-label">П1</div>
+                                <div class="odds-value">${match.odds1}</div>
+                            </div>
+                            <div class="odds-btn" onclick="event.stopPropagation(); selectTeam(${match.match_id}, ${match.team2.team_id})">
+                                <div class="odds-label">П2</div>
+                                <div class="odds-value">${match.odds2}</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="bet-distribution">
+                        <div class="bet-dist-label">Распределение</div>
+                        <div class="bet-dist-bar">
+                            <div class="bet-dist-fill" style="width: ${match.bet_distribution.team1}%"></div>
+                        </div>
+                        <div class="bet-dist-values">
+                            <div class="bet-dist-value">${match.bet_distribution.team1}%</div>
+                            <div class="bet-dist-value">${match.bet_distribution.team2}%</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render my bets
+        function renderMyСтавки() {
+            if (myСтавкиData.length === 0) {
+                return `
+                    <div class="empty-state">
+                        <div class="empty-icon"></div>
+                        <div class="empty-text">У вас нет ставок!</div>
+                    </div>
+                `;
+            }
+            
+            return myСтавкиData.map(bet => `
+                <div class="match-card">
+                    <div class="match-header">
+                        <div class="match-league">Матч #${bet.match_id}</div>
+                        <div style="font-size: 12px; color: ${bet.status === 'won' ? 'var(--success)' : bet.status === 'lost' ? 'var(--danger)' : 'var(--text-muted)'}">
+                            ${bet.status === 'won' ? ' Выигрыш' : bet.status === 'lost' ? ' Проигрыш' : ' Активна'}
+                        </div>
+                    </div>
+                    <div class="team">
+                        <div class="team-info">
+                            <div class="team-emoji">${bet.team_emoji}</div>
+                            <div class="team-name">${bet.team_name}</div>
+                        </div>
+                    </div>
+                    <div class="bet-summary">
+                        <div class="bet-summary-row">
+                            <div class="bet-summary-label">Ставка</div>
+                            <div class="bet-summary-value"> ${bet.amount}</div>
+                        </div>
+                        <div class="bet-summary-row">
+                            <div class="bet-summary-label">Коэф.</div>
+                            <div class="bet-summary-value">x${bet.odds}</div>
+                        </div>
+                        <div class="bet-summary-row">
+                            <div class="bet-summary-label">Потенциал</div>
+                            <div class="bet-summary-value highlight"> ${Math.round(bet.amount * bet.odds)}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render leaderboard
+        function renderLeaderboard() {
+            const mockLeaderboard = [
+                { username: 'ProGamer', balance: 2500, bets: 42, rank: 1 },
+                { username: 'BetMaster', balance: 1800, bets: 38, rank: 2 },
+                { username: user.first_name, balance: userData.balance, bets: 5, rank: 3 },
+                { username: 'LuckyPlayer', balance: 1200, bets: 25, rank: 4 },
+                { username: 'NewbieWin', balance: 800, bets: 15, rank: 5 },
+            ];
+            
+            const medals = { 1: '', 2: '', 3: '' };
+            
+            return `
+                <div style="padding-top: 12px;">
+                    ${mockLeaderboard.map(player => `
+                        <div class="match-card" style="${player.username === user.first_name ? 'border-color: var(--accent);' : ''}">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 16px;">
+                                    <div style="font-size: 32px;">${medals[player.rank] || player.rank + '.'}</div>
+                                    <div>
+                                        <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">${player.username}</div>
+                                        <div style="font-size: 13px; color: var(--text-muted);">Ставок: ${player.bets}</div>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 20px; font-weight: 800; color: var(--accent);"> ${player.balance}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Render profile
+        function renderПрофиль() {
+            return `
+                <div style="padding-top: 12px;">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">${user.first_name[0]}</div>
+                            <div class="profile-info">
+                                <div class="profile-name">${user.first_name}</div>
+                                <div class="profile-status">@${user.username || 'user'}</div>
+                            </div>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value"> ${userData.balance}</div>
+                                <div class="stat-label">Баланс</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">5</div>
+                                <div class="stat-label">Ставок</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Выиграно</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">#3</div>
+                                <div class="stat-label">Место</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Select team for bet
+        function selectTeam(matchId, teamId) {
+            const match = matchesData.find(m => m.match_id === matchId);
+            if (!match || match.status === 'live') return;
+            
+            const team = teamId === match.team1.team_id ? match.team1 : match.team2;
+            const odds = teamId === match.team1.team_id ? match.odds1 : match.odds2;
+            
+            currentBet = {
+                match_id: matchId,
+                team_id: teamId,
+                team_name: team.name,
+                team_emoji: team.emoji,
+                odds: odds,
+                amount: 100
+            };
+            
+            openBetModal();
+        }
+        
+        // Open bet modal
+        function openBetModal() {
+            if (!currentBet.match_id) return;
+            
+            document.getElementById('betModal').classList.add('active');
+            document.getElementById('betModalContent').innerHTML = `
+                <div class="team" style="margin-bottom: 20px;">
+                    <div class="team-info">
+                        <div class="team-emoji">${currentBet.team_emoji}</div>
+                        <div class="team-name">${currentBet.team_name}</div>
+                    </div>
+                    <div class="odds-value">x${currentBet.odds}</div>
+                </div>
+                
+                <div class="bet-input-group">
+                    <label class="bet-input-label">Сумма</label>
+                    <input type="number" class="bet-input" id="betСумма" value="${currentBet.amount}" min="50" max="${userData.balance}">
+                    <div class="bet-quick-amounts">
+                        <button class="quick-amount-btn" onclick="setBetСумма(50)">50</button>
+                        <button class="quick-amount-btn" onclick="setBetСумма(100)">100</button>
+                        <button class="quick-amount-btn" onclick="setBetСумма(200)">200</button>
+                        <button class="quick-amount-btn" onclick="setBetСумма(${userData.balance})">Макс</button>
+                    </div>
+                </div>
+                
+                <div class="bet-summary">
+                    <div class="bet-summary-row">
+                        <div class="bet-summary-label">Ставка</div>
+                        <div class="bet-summary-value" id="summaryСумма"> ${currentBet.amount}</div>
+                    </div>
+                    <div class="bet-summary-row">
+                        <div class="bet-summary-label">Коэф.</div>
+                        <div class="bet-summary-value">x${currentBet.odds}</div>
+                    </div>
+                    <div class="bet-summary-row">
+                        <div class="bet-summary-label">Потенциальный выигрыш</div>
+                        <div class="bet-summary-value highlight" id="summaryWin"> ${Math.round(currentBet.amount * currentBet.odds)}</div>
+                    </div>
+                </div>
+                
+                <button class="submit-bet-btn" onclick="submitBet()">Сделать ставку</button>
+            `;
+            
+            // Update summary on input change
+            document.getElementById('betСумма').addEventListener('input', (e) => {
+                const amount = parseInt(e.target.value) || 0;
+                currentBet.amount = amount;
+                document.getElementById('summaryСумма').textContent = ` ${amount}`;
+                document.getElementById('summaryWin').textContent = ` ${Math.round(amount * currentBet.odds)}`;
+            });
+        }
+        
+        // Close bet modal
+        function closeBetModal() {
+            document.getElementById('betModal').classList.remove('active');
+        }
+        
+        // Set bet amount
+        function setBetСумма(amount) {
+            document.getElementById('betСумма').value = amount;
+            currentBet.amount = amount;
+            document.getElementById('summaryСумма').textContent = ` ${amount}`;
+            document.getElementById('summaryWin').textContent = ` ${Math.round(amount * currentBet.odds)}`;
+        }
+        
+        // Submit bet
+        async function submitBet() {
+            try {
+                // Отправляем данные боту через WebApp
+                tg.sendData(JSON.stringify({
+                    action: 'place_bet',
+                    match_id: currentBet.match_id,
+                    team_id: currentBet.team_id,
+                    amount: currentBet.amount
+                }));
+                
+                closeBetModal();
+                tg.showAlert('Ставка принята! ');
+                
+                // Обновляем баланс
+                userData.balance -= currentBet.amount;
+                document.getElementById('userБаланс').textContent = userData.balance;
+                
+            } catch (error) {
+                console.error('Error submitting bet:', error);
+                tg.showAlert('Ошибка при размещении ставки ');
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    renderView(btn.dataset.view);
+                });
+            });
+            
+            // Close modal on background click
+            document.getElementById('betModal').addEventListener('click', (e) => {
+                if (e.target.id === 'betModal') {
+                    closeBetModal();
+                }
+            });
+        }
+        
+        // Init app
+        init();
+    </script>
+</body>
+</html>
