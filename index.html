@@ -24,7 +24,13 @@
             -webkit-font-smoothing: antialiased;
         }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .logo { font-size: 20px; font-weight: 700; letter-spacing: 2px; }
+        .logo { 
+            font-size: 20px; font-weight: 700; letter-spacing: 2px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .logo img {
+            width: 32px; height: 32px; object-fit: contain;
+        }
         .balance { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; }
         .nav { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
         .nav-btn {
@@ -50,12 +56,39 @@
         .odds-btn {
             background: var(--card-bg); border: 1px solid var(--border);
             color: var(--text); padding: 16px; border-radius: 8px;
-            cursor: pointer; transition: all 0.2s;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            overflow: hidden;
         }
-        .odds-btn:hover { border-color: var(--accent); background: var(--border); }
-        .odds-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-        .odds-value { font-size: 20px; font-weight: 700; }
+        .odds-btn:hover {
+            border-color: var(--accent);
+            background: var(--border);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+        }
+        .odds-btn:active {
+            transform: translateY(0) scale(0.98);
+            transition: all 0.1s;
+        }
+        .odds-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        .odds-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        .odds-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; position: relative; z-index: 1; }
+        .odds-value { font-size: 20px; font-weight: 700; position: relative; z-index: 1; }
         .distribution { font-size: 11px; color: var(--text-muted); margin-top: 12px; }
         .distribution-bar {
             height: 4px; background: var(--border); border-radius: 2px;
@@ -88,7 +121,9 @@
             width: 100%; padding: 16px; background: var(--accent);
             color: var(--bg); border: none; border-radius: 8px;
             font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s;
         }
+        .btn:active { transform: scale(0.98); }
         .btn-secondary {
             background: transparent; border: 1px solid var(--border);
             color: var(--text); margin-top: 12px;
@@ -129,11 +164,11 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo" style="display: flex; align-items: center; gap: 8px;">
-            <img src="logo.png" alt="ARM BET" style="width: 32px; height: 32px; object-fit: contain;">
+        <div class="logo">
+            <img src="logo.png" alt="ARM BET" onerror="this.style.display='none'">
             <span>ARM BET</span>
         </div>
-        <div class="balance" id="userBalance">500</div>
+        <div class="balance" id="userBalance">...</div>
     </div>
 
     <div class="nav">
@@ -158,13 +193,13 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-09 15:00:01
+        // Сгенерировано: 2026-03-09 15:05:01
         
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        const user = tg.initDataUnsafe.user || {id: 123456, first_name: 'Player'};
+        const user = tg.initDataUnsafe.user || {id: 123456, first_name: 'Player', username: 'player'};
 
         // ДАННЫЕ ИЗ БАЗЫ (подставляются автоматически)
         const matchesData = [
@@ -1648,34 +1683,10 @@
 
         let currentBet = {};
 
-        // Инициализация
         function init() {
             updateBalance();
             renderView('matches');
             setupEventListeners();
-        }
-        
-        function updateBalance() {
-            // Ищем себя в лидерах по Telegram user_id
-            const myData = leaderboardData.find(p => p.user_id === user.id);
-            
-            const balance = myData ? myData.balance : 500;
-            document.getElementById('userBalance').textContent = balance;
-        }
-        
-        function getMyBalance() {
-            // Получить актуальный баланс по user_id
-            const myData = leaderboardData.find(p => p.user_id === user.id);
-            return myData ? myData.balance : 500;
-        }
-        
-        function getMyData() {
-            // Получить все данные текущего пользователя
-            return leaderboardData.find(p => p.user_id === user.id) || {
-                balance: 500,
-                bets: 0,
-                rank: '—'
-            };
         }
 
         function setupEventListeners() {
@@ -1686,6 +1697,25 @@
                     renderView(btn.dataset.view);
                 });
             });
+        }
+
+        function updateBalance() {
+            const myData = leaderboardData.find(p => p.user_id === user.id);
+            const balance = myData ? myData.balance : 500;
+            document.getElementById('userBalance').textContent = balance;
+        }
+        
+        function getMyBalance() {
+            const myData = leaderboardData.find(p => p.user_id === user.id);
+            return myData ? myData.balance : 500;
+        }
+        
+        function getMyData() {
+            return leaderboardData.find(p => p.user_id === user.id) || {
+                balance: 500,
+                bets: 0,
+                rank: '—'
+            };
         }
 
         function renderView(view) {
@@ -1718,16 +1748,16 @@
                         ${match.status === 'live' ? '<span class="live-badge">● В ЭФИРЕ</span>' : ''}
                     </div>
                     <div class="match-teams">
-                        <div class="team">${match.team1.emoji} ${match.team1.name}</div>
+                        <div class="team">${match.team1.emoji || ''} ${match.team1.name}</div>
                         <div class="vs">VS</div>
-                        <div class="team">${match.team2.emoji} ${match.team2.name}</div>
+                        <div class="team">${match.team2.emoji || ''} ${match.team2.name}</div>
                     </div>
                     <div class="odds-row">
-                        <button class="odds-btn" onclick="openBetModal(${match.match_id}, ${match.team1.team_id}, '${match.team1.emoji} ${match.team1.name}', ${match.odds1})">
+                        <button class="odds-btn" onclick="openBetModal(${match.match_id}, ${match.team1.team_id}, '${match.team1.emoji || ''} ${match.team1.name}', ${match.odds1})">
                             <div class="odds-label">W1</div>
                             <div class="odds-value">${match.odds1}</div>
                         </button>
-                        <button class="odds-btn" onclick="openBetModal(${match.match_id}, ${match.team2.team_id}, '${match.team2.emoji} ${match.team2.name}', ${match.odds2})">
+                        <button class="odds-btn" onclick="openBetModal(${match.match_id}, ${match.team2.team_id}, '${match.team2.emoji || ''} ${match.team2.name}', ${match.odds2})">
                             <div class="odds-label">W2</div>
                             <div class="odds-value">${match.odds2}</div>
                         </button>
@@ -1748,7 +1778,6 @@
         }
 
         function renderMyBets() {
-            // Фильтруем ставки текущего пользователя по user_id
             const myBetsData = allBetsData.filter(bet => bet.user_id === user.id);
             
             if (!myBetsData || myBetsData.length === 0) {
@@ -1778,11 +1807,10 @@
                 return '<div class="empty-state"><div class="empty-text">Таблица лидеров пуста</div></div>';
             }
             
-            // Показываем только топ-10
             const top10 = leaderboardData.slice(0, 10);
             
             return top10.map(player => `
-                <div class="leader-card" style="${player.username === user.first_name || player.username === user.username ? 'border: 2px solid var(--accent);' : ''}">
+                <div class="leader-card" style="${player.user_id === user.id ? 'border: 2px solid var(--accent);' : ''}">
                     <div style="display: flex; align-items: center; gap: 20px;">
                         <div class="leader-rank">${player.rank}</div>
                         <div>
@@ -1796,14 +1824,10 @@
         }
 
         function renderProfile() {
-            // Генерируем градиент из имени
             const name = user.first_name || 'Player';
             const firstLetter = name.charAt(0).toUpperCase();
-            
-            // Получаем данные по user_id
             const myData = getMyData();
             
-            // Цвета для градиента (разные для разных букв)
             const colors = [
                 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -1824,17 +1848,10 @@
                 <div class="match-card">
                     <div style="text-align: center; margin-bottom: 24px;">
                         <div style="
-                            width: 120px;
-                            height: 120px;
-                            border-radius: 50%;
-                            background: ${gradient};
-                            margin: 0 auto 16px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 48px;
-                            font-weight: 700;
-                            color: white;
+                            width: 120px; height: 120px; border-radius: 50%;
+                            background: ${gradient}; margin: 0 auto 16px;
+                            display: flex; align-items: center; justify-content: center;
+                            font-size: 48px; font-weight: 700; color: white;
                             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
                         ">${firstLetter}</div>
                         <div style="font-size: 20px; font-weight: 700;">${name}</div>
