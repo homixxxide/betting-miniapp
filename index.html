@@ -158,7 +158,7 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-09 09:45:01
+        // Сгенерировано: 2026-03-09 09:47:01
         
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -167,12 +167,42 @@
         const user = tg.initDataUnsafe.user || {id: 123456, first_name: 'Player'};
 
         // ДАННЫЕ ИЗ БАЗЫ (подставляются автоматически)
-        const matchesData = [];
+        const matchesData = [
+            {
+                        "match_id": 15,
+                        "status": "upcoming",
+                        "league": "ARM BET Championship",
+                        "team1": {
+                                    "team_id": 5,
+                                    "name": "TEST1",
+                                    "emoji": "/"
+                        },
+                        "team2": {
+                                    "team_id": 6,
+                                    "name": "TEST2",
+                                    "emoji": "/"
+                        },
+                        "odds1": 2.0,
+                        "odds2": 2.0,
+                        "bet_distribution": {
+                                    "team1": 50,
+                                    "team2": 50
+                        }
+            }
+];
         const userData = {
             "balance": 500,
             "bets_count": 0
 };
-        const leaderboardData = [];
+        const leaderboardData = [
+            {
+                        "rank": 1,
+                        "username": "homixidehomixide555opiumopium",
+                        "user_id": 6611491689,
+                        "balance": 500,
+                        "bets": 0
+            }
+];
         const allBetsData = [
             {
                         "bet_id": 158,
