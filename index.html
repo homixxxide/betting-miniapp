@@ -96,27 +96,30 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-10 15:25:01
+        // Сгенерировано: 2026-03-10 15:30:01
         
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // ПОЛУЧАЕМ USER_ID ИЗ URL ПАРАМЕТРА (передаёт бот)
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlUserId = urlParams.get('user_id');
-        
-        // Пробуем получить из Telegram
-        const telegramUser = tg.initDataUnsafe.user || null;
+        // ПОЛУЧАЕМ USER_ID ИЗ TELEGRAM API (ПРИОРИТЕТ)
+        const telegramUser = tg.initDataUnsafe?.user;
         
         // Определяем текущего пользователя
         let currentUserId = null;
-        if (urlUserId) {
-            currentUserId = parseInt(urlUserId);
-            console.log('User ID из URL:', currentUserId);
-        } else if (telegramUser && telegramUser.id !== 123456) {
+        
+        // ПРИОРИТЕТ 1: Telegram API (всегда правильный user_id)
+        if (telegramUser && telegramUser.id) {
             currentUserId = telegramUser.id;
-            console.log('User ID из Telegram:', currentUserId);
+            console.log('✅ User ID из Telegram API:', currentUserId, telegramUser);
+        } else {
+            // ПРИОРИТЕТ 2: URL параметр (фоллбэк если Telegram не передал)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('user_id');
+            if (urlUserId) {
+                currentUserId = parseInt(urlUserId);
+                console.log('⚠️ User ID из URL (фоллбэк):', currentUserId);
+            }
         }
 
         // ДАННЫЕ ИЗ БАЗЫ
@@ -201,8 +204,10 @@
         }
 
         function updateBalance() {
+            console.log('💰 Обновление баланса для user_id:', currentUserId);
             const myData = leaderboardData.find(p => p.user_id === currentUserId);
             const balance = myData ? myData.balance : 500;
+            console.log('💵 Баланс:', balance);
             document.getElementById('userBalance').textContent = balance;
         }
         
@@ -212,7 +217,18 @@
         }
         
         function getMyData() {
+            console.log('🔍 Ищу данные для user_id:', currentUserId);
+            console.log('📊 Leaderboard data:', leaderboardData);
+            
             const myData = leaderboardData.find(p => p.user_id === currentUserId);
+            
+            if (myData) {
+                console.log('✅ Найдены данные:', myData);
+            } else {
+                console.warn('⚠️ Данные не найдены для user_id:', currentUserId);
+                console.warn('Доступные user_id:', leaderboardData.map(p => p.user_id));
+            }
+            
             return myData || { balance: 500, bets: 0, rank: '—', username: 'Player' };
         }
 
@@ -328,7 +344,16 @@
 
         function renderProfile() {
             const myData = getMyData();
-            const name = myData.username || 'Player';
+            
+            // ПРИОРИТЕТ 1: Username из Telegram
+            let name = 'Player';
+            if (telegramUser && (telegramUser.username || telegramUser.first_name)) {
+                name = telegramUser.username || telegramUser.first_name;
+            } else if (myData.username) {
+                // ПРИОРИТЕТ 2: Username из базы данных
+                name = myData.username;
+            }
+            
             const firstLetter = name.charAt(0).toUpperCase();
             
             const colors = [
