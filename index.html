@@ -96,7 +96,7 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-10 14:53:12
+        // Сгенерировано: 2026-03-10 14:55:01
         
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -135,11 +135,11 @@
                                     "name": "ТЕСТ 2",
                                     "emoji": ""
                         },
-                        "odds1": 2.0,
-                        "odds2": 2.0,
+                        "odds1": 1.1,
+                        "odds2": 3.0,
                         "bet_distribution": {
-                                    "team1": 50,
-                                    "team2": 50
+                                    "team1": 100,
+                                    "team2": 0
                         }
             }
 ];
@@ -150,27 +150,37 @@
         const leaderboardData = [
             {
                         "rank": 1,
-                        "username": "homixidehomixide555opiumopium",
-                        "user_id": 6611491689,
-                        "balance": 500,
-                        "bets": 0
-            },
-            {
-                        "rank": 2,
                         "username": "opium555YVL",
                         "user_id": 8004750966,
                         "balance": 500,
                         "bets": 0
             },
             {
-                        "rank": 3,
+                        "rank": 2,
                         "username": "armagedonbet_bot",
                         "user_id": 8596574713,
                         "balance": 500,
                         "bets": 0
+            },
+            {
+                        "rank": 3,
+                        "username": "homixidehomixide555opiumopium",
+                        "user_id": 6611491689,
+                        "balance": 0,
+                        "bets": 1
             }
 ];
-        const allBetsData = [];
+        const allBetsData = [
+            {
+                        "bet_id": 162,
+                        "match_id": 18,
+                        "user_id": 6611491689,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "active",
+                        "team": "ТЕСТ 1"
+            }
+];
 
         // Если всё равно не получили ID - используем первого из базы
         if (!currentUserId && leaderboardData && leaderboardData.length > 0) {
