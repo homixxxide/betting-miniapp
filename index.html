@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARM BET</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #000000; --card-bg: #121212; --border: #1f1f1f; --text: #ffffff; --text-muted: #8a8a8a; --accent: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .logo { font-size: 20px; font-weight: 700; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+        .logo img { width: 32px; height: 32px; object-fit: contain; }
+        .balance { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; }
+        .nav { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+        .nav-btn { padding: 12px 20px; background: none; border: none; color: var(--text-muted); font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .match-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .match-header { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .live-badge { color: #ff4444; font-weight: 700; }
+        .match-teams { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .team { font-size: 16px; font-weight: 700; }
+        .vs { font-size: 12px; color: var(--text-muted); }
+        .odds-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .odds-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'JetBrains Mono', monospace; position: relative; overflow: hidden; }
+        .odds-btn:hover { border-color: var(--accent); background: var(--border); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,255,255,0.1); }
+        .odds-btn:active { transform: translateY(0) scale(0.98); transition: all 0.1s; }
+        .odds-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.1); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .odds-btn:active::before { width: 300px; height: 300px; }
+        .odds-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; position: relative; z-index: 1; }
+        .odds-value { font-size: 20px; font-weight: 700; position: relative; z-index: 1; }
+        .distribution { font-size: 11px; color: var(--text-muted); margin-top: 12px; }
+        .distribution-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 8px 0; }
+        .distribution-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+        .modal { display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0); z-index: 1000; padding: 20px; align-items: center; justify-content: center; pointer-events: none; transition: background 0.3s ease; }
+        .modal.active { background: rgba(0,0,0,0.9); pointer-events: all; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; transform: scale(0.8) translateY(30px); opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        .modal-header { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+        .input-group { margin-bottom: 20px; }
+        .input-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+        .input { width: 100%; padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 16px; font-family: 'JetBrains Mono', monospace; }
+        .btn { width: 100%; padding: 16px; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); margin-top: 12px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .bet-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; }
+        .bet-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .bet-team-info { flex: 1; }
+        .bet-team-name { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+        .bet-match-id { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .bet-status { font-size: 10px; padding: 6px 10px; border-radius: 6px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
+        .bet-status.active { background: #1a4d2e; color: #4ade80; }
+        .bet-status.won { background: #1a4d2e; color: #4ade80; }
+        .bet-status.lost { background: #4d1a1a; color: #ff6b6b; }
+        .bet-details { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .bet-detail-item { }
+        .bet-detail-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bet-detail-value { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; }
+        .leader-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .leader-rank { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: var(--text-muted); width: 40px; }
+        .leader-name { font-weight: 700; }
+        .leader-balance { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="logo.png" alt="ARM BET" onerror="this.style.display='none'">
+            <span>ARM BET</span>
+        </div>
+        <div class="balance" id="userBalance">...</div>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn active" data-view="matches">Матчи</button>
+        <button class="nav-btn" data-view="bets">Ставки</button>
+        <button class="nav-btn" data-view="leaderboard">Лидеры</button>
+        <button class="nav-btn" data-view="profile">Профиль</button>
+    </div>
+
+    <div id="content"></div>
+
+    <div id="betModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeader">Сделать ставку</div>
+            <div class="input-group">
+                <label class="input-label">Сумма ставки</label>
+                <input type="number" class="input" id="betAmount" placeholder="Введите сумму">
+            </div>
+            <button class="btn" onclick="confirmBet()">Сделать ставку</button>
+            <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+        </div>
+    </div>
+
+    <script>
+        // Сгенерировано: 2026-03-10 10:01:03
+        
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // ПОЛУЧАЕМ USER_ID ИЗ URL ПАРАМЕТРА (передаёт бот)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlUserId = urlParams.get('user_id');
+        
+        // Пробуем получить из Telegram
+        const telegramUser = tg.initDataUnsafe.user || null;
+        
+        // Определяем текущего пользователя
+        let currentUserId = null;
+        if (urlUserId) {
+            currentUserId = parseInt(urlUserId);
+            console.log('User ID из URL:', currentUserId);
+        } else if (telegramUser && telegramUser.id !== 123456) {
+            currentUserId = telegramUser.id;
+            console.log('User ID из Telegram:', currentUserId);
+        }
+
+        // ДАННЫЕ ИЗ БАЗЫ
+        const matchesData = [
+            {
+                        "match_id": 17,
+                        "status": "upcoming",
+                        "league": "ARM BET Championship",
+                        "team1": {
+                                    "team_id": 5,
+                                    "name": "TEST1",
+                                    "emoji": "/"
+                        },
+                        "team2": {
+                                    "team_id": 6,
+                                    "name": "TEST2",
+                                    "emoji": "/"
+                        },
+                        "odds1": 1.1,
+                        "odds2": 3.0,
+                        "bet_distribution": {
+                                    "team1": 100,
+                                    "team2": 0
+                        }
+            }
+];
+        const userData = {
+            "balance": 500,
+            "bets_count": 0
+};
+        const leaderboardData = [
+            {
+                        "rank": 1,
+                        "username": "opium555YVL",
+                        "user_id": 8004750966,
+                        "balance": 500,
+                        "bets": 0
+            },
+            {
+                        "rank": 2,
+                        "username": "armagedonbet_bot",
+                        "user_id": 8596574713,
+                        "balance": 500,
+                        "bets": 0
+            },
+            {
+                        "rank": 3,
+                        "username": "homixidehomixide555opiumopium",
+                        "user_id": 6611491689,
+                        "balance": 0,
+                        "bets": 3
+            }
+];
+        const allBetsData = [
+            {
+                        "bet_id": 161,
+                        "match_id": 17,
+                        "user_id": 6611491689,
+                        "amount": 1500,
+                        "odds": 2.0,
+                        "status": "active",
+                        "team": "/ TEST1"
+            },
+            {
+                        "bet_id": 160,
+                        "match_id": 16,
+                        "user_id": 6611491689,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "/ TEST1"
+            },
+            {
+                        "bet_id": 159,
+                        "match_id": 15,
+                        "user_id": 6611491689,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "/ TEST1"
+            },
+            {
+                        "bet_id": 158,
+                        "match_id": 13,
+                        "user_id": 6611491689,
+                        "amount": 230,
+                        "odds": 3.0,
+                        "status": "lost",
+                        "team": "/ TEST2"
+            },
+            {
+                        "bet_id": 157,
+                        "match_id": 13,
+                        "user_id": 6611491689,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "/ TEST1"
+            },
+            {
+                        "bet_id": 156,
+                        "match_id": 14,
+                        "user_id": 6611491689,
+                        "amount": 214,
+                        "odds": 2.0,
+                        "status": "lost",
+                        "team": "/ TEST1"
+            },
+            {
+                        "bet_id": 155,
+                        "match_id": 12,
+                        "user_id": 6611491689,
+                        "amount": 242,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "/ TEST1"
+            },
+            {
+                        "bet_id": 154,
+                        "match_id": 11,
+                        "user_id": 1681246718,
+                        "amount": 555,
+                        "odds": 1.78,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 153,
+                        "match_id": 11,
+                        "user_id": 2081391763,
+                        "amount": 500,
+                        "odds": 1.83,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 152,
+                        "match_id": 11,
+                        "user_id": 1866381148,
+                        "amount": 500,
+                        "odds": 1.9,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 151,
+                        "match_id": 11,
+                        "user_id": 1551226521,
+                        "amount": 875,
+                        "odds": 2.03,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 150,
+                        "match_id": 11,
+                        "user_id": 5731019273,
+                        "amount": 1325,
+                        "odds": 2.32,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 149,
+                        "match_id": 11,
+                        "user_id": 6992317568,
+                        "amount": 500,
+                        "odds": 1.37,
+                        "status": "lost",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 148,
+                        "match_id": 11,
+                        "user_id": 5227160954,
+                        "amount": 1030,
+                        "odds": 2.57,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 147,
+                        "match_id": 11,
+                        "user_id": 756990502,
+                        "amount": 500,
+                        "odds": 1.3,
+                        "status": "lost",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 146,
+                        "match_id": 11,
+                        "user_id": 1769669703,
+                        "amount": 200,
+                        "odds": 2.55,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 145,
+                        "match_id": 11,
+                        "user_id": 7731478475,
+                        "amount": 3918,
+                        "odds": 1.65,
+                        "status": "lost",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 144,
+                        "match_id": 11,
+                        "user_id": 868255999,
+                        "amount": 500,
+                        "odds": 1.75,
+                        "status": "lost",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 143,
+                        "match_id": 11,
+                        "user_id": 5995562597,
+                        "amount": 943,
+                        "odds": 1.89,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 142,
+                        "match_id": 11,
+                        "user_id": 5757294318,
+                        "amount": 500,
+                        "odds": 2.08,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 141,
+                        "match_id": 11,
+                        "user_id": 7322092348,
+                        "amount": 2207,
+                        "odds": 5.0,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 140,
+                        "match_id": 11,
+                        "user_id": 6329908848,
+                        "amount": 3480,
+                        "odds": 1.78,
+                        "status": "lost",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 139,
+                        "match_id": 11,
+                        "user_id": 6707472465,
+                        "amount": 550,
+                        "odds": 3.0,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 138,
+                        "match_id": 11,
+                        "user_id": 1440357305,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "lost",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 137,
+                        "match_id": 9,
+                        "user_id": 1551226521,
+                        "amount": 500,
+                        "odds": 1.75,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 136,
+                        "match_id": 9,
+                        "user_id": 1915371447,
+                        "amount": 100,
+                        "odds": 1.77,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 135,
+                        "match_id": 9,
+                        "user_id": 5258344125,
+                        "amount": 1500,
+                        "odds": 1.86,
+                        "status": "lost",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 134,
+                        "match_id": 9,
+                        "user_id": 7863662858,
+                        "amount": 412,
+                        "odds": 1.61,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 133,
+                        "match_id": 9,
+                        "user_id": 6329908848,
+                        "amount": 1785,
+                        "odds": 1.95,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 132,
+                        "match_id": 9,
+                        "user_id": 7731478475,
+                        "amount": 500,
+                        "odds": 2.11,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 131,
+                        "match_id": 9,
+                        "user_id": 8302785613,
+                        "amount": 302,
+                        "odds": 2.23,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 130,
+                        "match_id": 9,
+                        "user_id": 1809349886,
+                        "amount": 1342,
+                        "odds": 1.56,
+                        "status": "lost",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 129,
+                        "match_id": 10,
+                        "user_id": 1809349886,
+                        "amount": 550,
+                        "odds": 2.44,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 128,
+                        "match_id": 9,
+                        "user_id": 5227160954,
+                        "amount": 500,
+                        "odds": 2.06,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 127,
+                        "match_id": 10,
+                        "user_id": 1326835102,
+                        "amount": 500,
+                        "odds": 1.34,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 126,
+                        "match_id": 10,
+                        "user_id": 5258344125,
+                        "amount": 3240,
+                        "odds": 1.84,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 125,
+                        "match_id": 9,
+                        "user_id": 6763557539,
+                        "amount": 605,
+                        "odds": 1.56,
+                        "status": "lost",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 124,
+                        "match_id": 9,
+                        "user_id": 5731019273,
+                        "amount": 611,
+                        "odds": 2.17,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 123,
+                        "match_id": 10,
+                        "user_id": 5731019273,
+                        "amount": 700,
+                        "odds": 2.11,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 122,
+                        "match_id": 10,
+                        "user_id": 7731478475,
+                        "amount": 1743,
+                        "odds": 1.93,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 121,
+                        "match_id": 9,
+                        "user_id": 7322092348,
+                        "amount": 2000,
+                        "odds": 2.27,
+                        "status": "lost",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 120,
+                        "match_id": 10,
+                        "user_id": 7322092348,
+                        "amount": 750,
+                        "odds": 2.61,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 119,
+                        "match_id": 10,
+                        "user_id": 8189747085,
+                        "amount": 250,
+                        "odds": 1.31,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 118,
+                        "match_id": 9,
+                        "user_id": 8279776394,
+                        "amount": 500,
+                        "odds": 3.22,
+                        "status": "lost",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 117,
+                        "match_id": 9,
+                        "user_id": 5995562597,
+                        "amount": 720,
+                        "odds": 1.31,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 116,
+                        "match_id": 9,
+                        "user_id": 6357863437,
+                        "amount": 200,
+                        "odds": 1.39,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 115,
+                        "match_id": 9,
+                        "user_id": 6357863437,
+                        "amount": 300,
+                        "odds": 3.07,
+                        "status": "lost",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 114,
+                        "match_id": 9,
+                        "user_id": 8189747085,
+                        "amount": 250,
+                        "odds": 5.0,
+                        "status": "lost",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 113,
+                        "match_id": 10,
+                        "user_id": 6329908848,
+                        "amount": 500,
+                        "odds": 3.57,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 112,
+                        "match_id": 9,
+                        "user_id": 6707472465,
+                        "amount": 500,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 111,
+                        "match_id": 10,
+                        "user_id": 6707472465,
+                        "amount": 261,
+                        "odds": 1.15,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 110,
+                        "match_id": 10,
+                        "user_id": 1306062834,
+                        "amount": 200,
+                        "odds": 1.19,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 109,
+                        "match_id": 9,
+                        "user_id": 1306062834,
+                        "amount": 200,
+                        "odds": 3.0,
+                        "status": "lost",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 108,
+                        "match_id": 10,
+                        "user_id": 1306062834,
+                        "amount": 100,
+                        "odds": 3.36,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 107,
+                        "match_id": 10,
+                        "user_id": 5629889586,
+                        "amount": 500,
+                        "odds": 1.25,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 106,
+                        "match_id": 10,
+                        "user_id": 8302785613,
+                        "amount": 100,
+                        "odds": 3.02,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 105,
+                        "match_id": 9,
+                        "user_id": 8302785613,
+                        "amount": 400,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 104,
+                        "match_id": 9,
+                        "user_id": 939433431,
+                        "amount": 275,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 103,
+                        "match_id": 10,
+                        "user_id": 939433431,
+                        "amount": 275,
+                        "odds": 1.27,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 102,
+                        "match_id": 10,
+                        "user_id": 1249366542,
+                        "amount": 1000,
+                        "odds": 3.0,
+                        "status": "lost",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 101,
+                        "match_id": 10,
+                        "user_id": 6611491689,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 100,
+                        "match_id": 8,
+                        "user_id": 5616511787,
+                        "amount": 150,
+                        "odds": 1.57,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 99,
+                        "match_id": 8,
+                        "user_id": 7390530944,
+                        "amount": 520,
+                        "odds": 1.65,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 98,
+                        "match_id": 8,
+                        "user_id": 1771672732,
+                        "amount": 700,
+                        "odds": 1.82,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 97,
+                        "match_id": 8,
+                        "user_id": 7731478475,
+                        "amount": 500,
+                        "odds": 1.98,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 96,
+                        "match_id": 7,
+                        "user_id": 7731478475,
+                        "amount": 230,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 95,
+                        "match_id": 7,
+                        "user_id": 1483500586,
+                        "amount": 200,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 94,
+                        "match_id": 8,
+                        "user_id": 1483500586,
+                        "amount": 357,
+                        "odds": 2.13,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 93,
+                        "match_id": 8,
+                        "user_id": 1019006011,
+                        "amount": 500,
+                        "odds": 1.5,
+                        "status": "lost",
+                        "team": "⚡ Veni Vidi Vici"
+            },
+            {
+                        "bet_id": 92,
+                        "match_id": 8,
+                        "user_id": 6339776220,
+                        "amount": 200,
+                        "odds": 1.53,
+                        "status": "lost",
+                        "team": "⚡ Veni Vidi Vici"
+            },
+            {
+                        "bet_id": 91,
+                        "match_id": 8,
+                        "user_id": 6339776220,
+                        "amount": 300,
+                        "odds": 1.6,
+                        "status": "lost",
+                        "team": "⚡ Veni Vidi Vici"
+            },
+            {
+                        "bet_id": 90,
+                        "match_id": 8,
+                        "user_id": 1249366542,
+                        "amount": 500,
+                        "odds": 2.03,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 89,
+                        "match_id": 8,
+                        "user_id": 1195932173,
+                        "amount": 552,
+                        "odds": 1.6,
+                        "status": "lost",
+                        "team": "⚡ Veni Vidi Vici"
+            },
+            {
+                        "bet_id": 88,
+                        "match_id": 7,
+                        "user_id": 1809349886,
+                        "amount": 500,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 87,
+                        "match_id": 7,
+                        "user_id": 1090809187,
+                        "amount": 600,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 86,
+                        "match_id": 7,
+                        "user_id": 6707472465,
+                        "amount": 500,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 85,
+                        "match_id": 8,
+                        "user_id": 6707472465,
+                        "amount": 100,
+                        "odds": 1.86,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 84,
+                        "match_id": 7,
+                        "user_id": 5731019273,
+                        "amount": 425,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 83,
+                        "match_id": 8,
+                        "user_id": 5731019273,
+                        "amount": 400,
+                        "odds": 2.11,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 82,
+                        "match_id": 7,
+                        "user_id": 939433431,
+                        "amount": 500,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 81,
+                        "match_id": 8,
+                        "user_id": 2124871286,
+                        "amount": 2400,
+                        "odds": 3.0,
+                        "status": "lost",
+                        "team": "⚡ Veni Vidi Vici"
+            },
+            {
+                        "bet_id": 80,
+                        "match_id": 7,
+                        "user_id": 7863662858,
+                        "amount": 375,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 79,
+                        "match_id": 7,
+                        "user_id": 7322092348,
+                        "amount": 1500,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 78,
+                        "match_id": 8,
+                        "user_id": 5258344125,
+                        "amount": 1620,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 77,
+                        "match_id": 5,
+                        "user_id": 7390530944,
+                        "amount": 500,
+                        "odds": 3.04,
+                        "status": "won",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 76,
+                        "match_id": 5,
+                        "user_id": 8522301410,
+                        "amount": 286,
+                        "odds": 1.2,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 75,
+                        "match_id": 5,
+                        "user_id": 7939033809,
+                        "amount": 518,
+                        "odds": 1.26,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 74,
+                        "match_id": 5,
+                        "user_id": 2026950193,
+                        "amount": 496,
+                        "odds": 1.32,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 73,
+                        "match_id": 5,
+                        "user_id": 1083560435,
+                        "amount": 100,
+                        "odds": 2.47,
+                        "status": "won",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 72,
+                        "match_id": 5,
+                        "user_id": 5258344125,
+                        "amount": 500,
+                        "odds": 3.24,
+                        "status": "won",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 71,
+                        "match_id": 5,
+                        "user_id": 1208392076,
+                        "amount": 400,
+                        "odds": 1.2,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 70,
+                        "match_id": 5,
+                        "user_id": 5731019273,
+                        "amount": 250,
+                        "odds": 1.24,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 69,
+                        "match_id": 5,
+                        "user_id": 5731019273,
+                        "amount": 250,
+                        "odds": 3.3,
+                        "status": "won",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 68,
+                        "match_id": 5,
+                        "user_id": 6141584503,
+                        "amount": 200,
+                        "odds": 1.17,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 67,
+                        "match_id": 5,
+                        "user_id": 1467176754,
+                        "amount": 100,
+                        "odds": 3.4,
+                        "status": "won",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 66,
+                        "match_id": 5,
+                        "user_id": 1467176754,
+                        "amount": 100,
+                        "odds": 1.15,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 65,
+                        "match_id": 5,
+                        "user_id": 1072838958,
+                        "amount": 200,
+                        "odds": 4.26,
+                        "status": "won",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 64,
+                        "match_id": 5,
+                        "user_id": 7979398621,
+                        "amount": 100,
+                        "odds": 1.1,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 63,
+                        "match_id": 5,
+                        "user_id": 7322092348,
+                        "amount": 500,
+                        "odds": 3.0,
+                        "status": "won",
+                        "team": "⚡ team shpilit"
+            },
+            {
+                        "bet_id": 62,
+                        "match_id": 5,
+                        "user_id": 5293268618,
+                        "amount": 653,
+                        "odds": 1.1,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 61,
+                        "match_id": 4,
+                        "user_id": 7939033809,
+                        "amount": 365,
+                        "odds": 1.42,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 60,
+                        "match_id": 5,
+                        "user_id": 7939033809,
+                        "amount": 300,
+                        "odds": 1.1,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 59,
+                        "match_id": 4,
+                        "user_id": 2026950193,
+                        "amount": 100,
+                        "odds": 1.44,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 58,
+                        "match_id": 5,
+                        "user_id": 2026950193,
+                        "amount": 200,
+                        "odds": 1.1,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 57,
+                        "match_id": 5,
+                        "user_id": 7863662858,
+                        "amount": 250,
+                        "odds": 1.1,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 56,
+                        "match_id": 4,
+                        "user_id": 7863662858,
+                        "amount": 250,
+                        "odds": 1.5,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 55,
+                        "match_id": 4,
+                        "user_id": 5278932989,
+                        "amount": 608,
+                        "odds": 2.5,
+                        "status": "lost",
+                        "team": "⚡ Team Ackerman"
+            },
+            {
+                        "bet_id": 54,
+                        "match_id": 5,
+                        "user_id": 1401526632,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "lost",
+                        "team": "⚡️ 120 секунд без Славы"
+            },
+            {
+                        "bet_id": 53,
+                        "match_id": 4,
+                        "user_id": 1771672732,
+                        "amount": 500,
+                        "odds": 1.4,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 52,
+                        "match_id": 4,
+                        "user_id": 8522301410,
+                        "amount": 547,
+                        "odds": 1.62,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 51,
+                        "match_id": 4,
+                        "user_id": 7731478475,
+                        "amount": 567,
+                        "odds": 2.17,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 50,
+                        "match_id": 4,
+                        "user_id": 2124871286,
+                        "amount": 800,
+                        "odds": 3.0,
+                        "status": "won",
+                        "team": "⚡ team fallens"
+            },
+            {
+                        "bet_id": 49,
+                        "match_id": 4,
+                        "user_id": 8439898091,
+                        "amount": 632,
+                        "odds": 1.1,
+                        "status": "lost",
+                        "team": "⚡ Team Ackerman"
+            },
+            {
+                        "bet_id": 48,
+                        "match_id": 4,
+                        "user_id": 1100506026,
+                        "amount": 610,
+                        "odds": 2.0,
+                        "status": "lost",
+                        "team": "⚡ Team Ackerman"
+            },
+            {
+                        "bet_id": 47,
+                        "match_id": 3,
+                        "user_id": 2124871286,
+                        "amount": 110,
+                        "odds": 3.03,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 46,
+                        "match_id": 3,
+                        "user_id": 8522301410,
+                        "amount": 250,
+                        "odds": 1.19,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 45,
+                        "match_id": 3,
+                        "user_id": 1100506026,
+                        "amount": 500,
+                        "odds": 1.22,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 44,
+                        "match_id": 3,
+                        "user_id": 1483500586,
+                        "amount": 250,
+                        "odds": 1.23,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 43,
+                        "match_id": 3,
+                        "user_id": 2140514779,
+                        "amount": 500,
+                        "odds": 1.26,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 42,
+                        "match_id": 3,
+                        "user_id": 1090809187,
+                        "amount": 500,
+                        "odds": 1.29,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 41,
+                        "match_id": 3,
+                        "user_id": 5293268618,
+                        "amount": 400,
+                        "odds": 1.32,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 40,
+                        "match_id": 3,
+                        "user_id": 6601126860,
+                        "amount": 500,
+                        "odds": 2.67,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 39,
+                        "match_id": 3,
+                        "user_id": 5293268618,
+                        "amount": 100,
+                        "odds": 1.25,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 38,
+                        "match_id": 3,
+                        "user_id": 7731478475,
+                        "amount": 250,
+                        "odds": 1.27,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 37,
+                        "match_id": 3,
+                        "user_id": 1915371447,
+                        "amount": 400,
+                        "odds": 2.86,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 36,
+                        "match_id": 3,
+                        "user_id": 6707472465,
+                        "amount": 500,
+                        "odds": 1.25,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 35,
+                        "match_id": 3,
+                        "user_id": 2026950193,
+                        "amount": 200,
+                        "odds": 1.26,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 34,
+                        "match_id": 3,
+                        "user_id": 916824426,
+                        "amount": 1000,
+                        "odds": 4.0,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 33,
+                        "match_id": 3,
+                        "user_id": 1681246718,
+                        "amount": 500,
+                        "odds": 1.11,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 32,
+                        "match_id": 3,
+                        "user_id": 8439898091,
+                        "amount": 550,
+                        "odds": 1.15,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 31,
+                        "match_id": 3,
+                        "user_id": 5278932989,
+                        "amount": 180,
+                        "odds": 1.16,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 30,
+                        "match_id": 3,
+                        "user_id": 1083560435,
+                        "amount": 100,
+                        "odds": 3.36,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 29,
+                        "match_id": 3,
+                        "user_id": 1769669703,
+                        "amount": 300,
+                        "odds": 4.25,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 28,
+                        "match_id": 3,
+                        "user_id": 5844611224,
+                        "amount": 100,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 27,
+                        "match_id": 3,
+                        "user_id": 1195932173,
+                        "amount": 250,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 26,
+                        "match_id": 3,
+                        "user_id": 1195932173,
+                        "amount": 250,
+                        "odds": 1.11,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 25,
+                        "match_id": 3,
+                        "user_id": 1083560435,
+                        "amount": 100,
+                        "odds": 1.12,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 24,
+                        "match_id": 2,
+                        "user_id": 1083560435,
+                        "amount": 100,
+                        "odds": 1.23,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 23,
+                        "match_id": 2,
+                        "user_id": 2034287815,
+                        "amount": 400,
+                        "odds": 4.04,
+                        "status": "lost",
+                        "team": "⚡ team Aogiri Tree"
+            },
+            {
+                        "bet_id": 22,
+                        "match_id": 3,
+                        "user_id": 5407658434,
+                        "amount": 100,
+                        "odds": 1.13,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 21,
+                        "match_id": 2,
+                        "user_id": 7809676153,
+                        "amount": 100,
+                        "odds": 4.67,
+                        "status": "lost",
+                        "team": "⚡ team Aogiri Tree"
+            },
+            {
+                        "bet_id": 20,
+                        "match_id": 2,
+                        "user_id": 8439898091,
+                        "amount": 500,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 19,
+                        "match_id": 2,
+                        "user_id": 1208392076,
+                        "amount": 100,
+                        "odds": 4.57,
+                        "status": "lost",
+                        "team": "⚡ team Aogiri Tree"
+            },
+            {
+                        "bet_id": 18,
+                        "match_id": 3,
+                        "user_id": 1208392076,
+                        "amount": 100,
+                        "odds": 1.14,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 17,
+                        "match_id": 3,
+                        "user_id": 6763557539,
+                        "amount": 500,
+                        "odds": 1.21,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 16,
+                        "match_id": 2,
+                        "user_id": 730681147,
+                        "amount": 150,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 15,
+                        "match_id": 3,
+                        "user_id": 7939033809,
+                        "amount": 500,
+                        "odds": 1.33,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 14,
+                        "match_id": 3,
+                        "user_id": 7427048784,
+                        "amount": 500,
+                        "odds": 4.49,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 13,
+                        "match_id": 3,
+                        "user_id": 7227003089,
+                        "amount": 500,
+                        "odds": 1.15,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 12,
+                        "match_id": 3,
+                        "user_id": 5995562597,
+                        "amount": 500,
+                        "odds": 1.44,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 11,
+                        "match_id": 2,
+                        "user_id": 5278932989,
+                        "amount": 500,
+                        "odds": 1.16,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 10,
+                        "match_id": 3,
+                        "user_id": 1932910949,
+                        "amount": 150,
+                        "odds": 2.98,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 9,
+                        "match_id": 2,
+                        "user_id": 1932910949,
+                        "amount": 150,
+                        "odds": 4.59,
+                        "status": "lost",
+                        "team": "⚡ team Aogiri Tree"
+            },
+            {
+                        "bet_id": 8,
+                        "match_id": 3,
+                        "user_id": 1932910949,
+                        "amount": 200,
+                        "odds": 3.0,
+                        "status": "lost",
+                        "team": "⚡ Бегемоды"
+            },
+            {
+                        "bet_id": 7,
+                        "match_id": 2,
+                        "user_id": 2026950193,
+                        "amount": 500,
+                        "odds": 1.2,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 6,
+                        "match_id": 3,
+                        "user_id": 730681147,
+                        "amount": 100,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 5,
+                        "match_id": 2,
+                        "user_id": 730681147,
+                        "amount": 250,
+                        "odds": 3.0,
+                        "status": "lost",
+                        "team": "⚡ team Aogiri Tree"
+            },
+            {
+                        "bet_id": 4,
+                        "match_id": 3,
+                        "user_id": 2124871286,
+                        "amount": 400,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "⚡ поколение чудес"
+            },
+            {
+                        "bet_id": 3,
+                        "match_id": 2,
+                        "user_id": 2124871286,
+                        "amount": 100,
+                        "odds": 1.1,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 2,
+                        "match_id": 2,
+                        "user_id": 916824426,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "⚡ шишчечки"
+            },
+            {
+                        "bet_id": 1,
+                        "match_id": 1,
+                        "user_id": 916824426,
+                        "amount": 300,
+                        "odds": 2.0,
+                        "status": "won",
+                        "team": "/ TEST1"
+            }
+];
+
+        // Если всё равно не получили ID - используем первого из базы
+        if (!currentUserId && leaderboardData && leaderboardData.length > 0) {
+            currentUserId = leaderboardData[0].user_id;
+            console.log('User ID не передан, используем первого:', currentUserId);
+        }
+
+        let currentBet = {};
+
+        function init() {
+            updateBalance();
+            renderView('matches');
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderView(btn.dataset.view);
+                });
+            });
+        }
+
+        function updateBalance() {
+            const myData = leaderboardData.find(p => p.user_id === currentUserId);
+            const balance = myData ? myData.balance : 500;
+            document.getElementById('userBalance').textContent = balance;
+        }
+        
+        function getMyBalance() {
+            const myData = leaderboardData.find(p => p.user_id === currentUserId);
+            return myData ? myData.balance : 500;
+        }
+        
+        function getMyData() {
+            const myData = leaderboardData.find(p => p.user_id === currentUserId);
+            return myData || { balance: 500, bets: 0, rank: '—', username: 'Player' };
+        }
+
+        function renderView(view) {
+            const content = document.getElementById('content');
+            switch(view) {
+                case 'matches': content.innerHTML = renderMatches(); break;
+                case 'bets': content.innerHTML = renderMyBets(); break;
+                case 'leaderboard': content.innerHTML = renderLeaderboard(); break;
+                case 'profile': content.innerHTML = renderProfile(); break;
+            }
+        }
+
+        function renderMatches() {
+            if (!matchesData || matchesData.length === 0) {
+                return '<div class="empty-state"><div class="empty-text">Нет доступных матчей</div></div>';
+            }
+            
+            return matchesData.map(match => `
+                <div class="match-card">
+                    <div class="match-header">
+                        <span>${match.league}</span>
+                        ${match.status === 'live' ? '<span class="live-badge">● В ЭФИРЕ</span>' : ''}
+                    </div>
+                    <div class="match-teams">
+                        <div class="team">${match.team1.emoji || ''} ${match.team1.name}</div>
+                        <div class="vs">VS</div>
+                        <div class="team">${match.team2.emoji || ''} ${match.team2.name}</div>
+                    </div>
+                    <div class="odds-row">
+                        <button class="odds-btn" onclick="openBetModal(${match.match_id}, ${match.team1.team_id}, '${(match.team1.emoji || '') + ' ' + match.team1.name}', ${match.odds1})">
+                            <div class="odds-label">W1</div>
+                            <div class="odds-value">${match.odds1}</div>
+                        </button>
+                        <button class="odds-btn" onclick="openBetModal(${match.match_id}, ${match.team2.team_id}, '${(match.team2.emoji || '') + ' ' + match.team2.name}', ${match.odds2})">
+                            <div class="odds-label">W2</div>
+                            <div class="odds-value">${match.odds2}</div>
+                        </button>
+                    </div>
+                    <div style="font-size: 10px; color: var(--text-muted); text-align: center; margin: 8px 0;">
+                        ⚠️ Коэффициенты обновляются каждые 5 мин. При ставке фиксируется текущий коэф.
+                    </div>
+                    <div class="distribution">РАСПРЕДЕЛЕНИЕ</div>
+                    <div class="distribution-bar">
+                        <div class="distribution-fill" style="width: ${match.bet_distribution.team1}%"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
+                        <span>${match.bet_distribution.team1}%</span>
+                        <span>${match.bet_distribution.team2}%</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMyBets() {
+            const myBetsData = allBetsData.filter(bet => bet.user_id === currentUserId);
+            
+            if (!myBetsData || myBetsData.length === 0) {
+                return '<div class="empty-state"><div class="empty-text">У вас пока нет ставок</div></div>';
+            }
+            
+            return myBetsData.map(bet => {
+                const statusText = bet.status === 'active' ? 'Активна' : bet.status === 'won' ? 'Выигрыш' : 'Проигрыш';
+                const potential = Math.round(bet.amount * bet.odds);
+                
+                return `
+                <div class="bet-card">
+                    <div class="bet-header">
+                        <div class="bet-team-info">
+                            <div class="bet-team-name">${bet.team}</div>
+                            <div class="bet-match-id">Матч #${bet.match_id}</div>
+                        </div>
+                        <span class="bet-status ${bet.status}">${statusText}</span>
+                    </div>
+                    <div class="bet-details">
+                        <div class="bet-detail-item">
+                            <div class="bet-detail-label">Ставка</div>
+                            <div class="bet-detail-value">${bet.amount}</div>
+                        </div>
+                        <div class="bet-detail-item">
+                            <div class="bet-detail-label">Коэфф</div>
+                            <div class="bet-detail-value">x${bet.odds}</div>
+                        </div>
+                        <div class="bet-detail-item">
+                            <div class="bet-detail-label">${bet.status === 'won' ? 'Выигрыш' : bet.status === 'lost' ? 'Потеря' : 'Потенциал'}</div>
+                            <div class="bet-detail-value">${potential}</div>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function renderLeaderboard() {
+            if (!leaderboardData || leaderboardData.length === 0) {
+                return '<div class="empty-state"><div class="empty-text">Таблица лидеров пуста</div></div>';
+            }
+            
+            const top10 = leaderboardData.slice(0, 10);
+            
+            return top10.map(player => `
+                <div class="leader-card" style="${player.user_id === currentUserId ? 'border: 2px solid var(--accent);' : ''}">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div class="leader-rank">${player.rank}</div>
+                        <div>
+                            <div class="leader-name">${player.username}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${player.bets} ставок</div>
+                        </div>
+                    </div>
+                    <div class="leader-balance">${player.balance}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderProfile() {
+            const myData = getMyData();
+            const name = myData.username || 'Player';
+            const firstLetter = name.charAt(0).toUpperCase();
+            
+            const colors = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+                'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+                'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+                'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)'
+            ];
+            
+            const colorIndex = firstLetter.charCodeAt(0) % colors.length;
+            const gradient = colors[colorIndex];
+            
+            return `
+                <div class="match-card">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background: ${gradient}; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 700; color: white; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">${firstLetter}</div>
+                        <div style="font-size: 20px; font-weight: 700;">${name}</div>
+                    </div>
+                    <div style="display: grid; gap: 16px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">Место в рейтинге</span>
+                            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">#${myData.rank}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">Баланс</span>
+                            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">${myData.balance}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">Всего ставок</span>
+                            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">${myData.bets}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openBetModal(matchId, teamId, teamName, odds) {
+            currentBet = { matchId, teamId, teamName, odds };
+            document.getElementById('modalHeader').textContent = `Ставка на ${teamName}`;
+            document.getElementById('betAmount').value = '';
+            document.getElementById('betModal').classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('betModal');
+            modal.querySelector('.modal-content').style.transform = 'scale(0.7) translateY(50px)';
+            modal.querySelector('.modal-content').style.opacity = '0';
+            setTimeout(() => {
+                modal.classList.remove('active');
+                modal.querySelector('.modal-content').style.transform = '';
+                modal.querySelector('.modal-content').style.opacity = '';
+            }, 300);
+        }
+
+        function confirmBet() {
+            const amount = parseInt(document.getElementById('betAmount').value);
+            
+            if (!amount || amount < 50) {
+                tg.showAlert('Минимальная ставка: 50');
+                return;
+            }
+            
+            if (amount > getMyBalance()) {
+                tg.showAlert('Недостаточно средств!');
+                return;
+            }
+            
+            const betData = {
+                action: 'place_bet',
+                match_id: currentBet.matchId,
+                team_id: currentBet.teamId,
+                amount: amount
+            };
+            
+            tg.sendData(JSON.stringify(betData));
+            closeModal();
+        }
+
+        init();
+    </script>
+</body>
+</html>
