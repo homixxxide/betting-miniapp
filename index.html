@@ -99,7 +99,7 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-12 21:25:01
+        // Сгенерировано: 2026-03-12 21:30:01
         
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -141,11 +141,11 @@
                                     "name": "ТЕСТ 2",
                                     "emoji": ""
                         },
-                        "odds1": 2.0,
-                        "odds2": 2.0,
+                        "odds1": 3.0,
+                        "odds2": 1.1,
                         "bet_distribution": {
-                                    "team1": 50,
-                                    "team2": 50
+                                    "team1": 0,
+                                    "team2": 100
                         }
             },
             {
@@ -198,20 +198,29 @@
         let leaderboardData = [
             {
                         "rank": 1,
-                        "username": "homixidehomixide555opiumopium",
-                        "user_id": 6611491689,
-                        "balance": 16000,
-                        "bets": 5
-            },
-            {
-                        "rank": 2,
                         "username": "opium555YVL",
                         "user_id": 8004750966,
                         "balance": 500,
                         "bets": 0
+            },
+            {
+                        "rank": 2,
+                        "username": "homixidehomixide555opiumopium",
+                        "user_id": 6611491689,
+                        "balance": 0,
+                        "bets": 6
             }
 ];
         let allBetsData = [
+            {
+                        "bet_id": 172,
+                        "match_id": 27,
+                        "user_id": 6611491689,
+                        "amount": 16000,
+                        "odds": 2.0,
+                        "status": "active",
+                        "team": "ТЕСТ 2"
+            },
             {
                         "bet_id": 171,
                         "match_id": 28,
