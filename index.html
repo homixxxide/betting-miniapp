@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>ARM BET</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -96,7 +99,33 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-12 18:35:01
+        // Сгенерировано: 2026-03-12 18:40:01
+        
+        // ========== АВТООБНОВЛЕНИЕ ВЕРСИИ ==========
+        const APP_VERSION = '// Сгенерировано: 2026-03-12 18:40:01'; // Версия генерируется автоматически
+        
+        function checkVersion() {
+            const storedVersion = localStorage.getItem('arm_bet_version');
+            
+            if (storedVersion && storedVersion !== APP_VERSION) {
+                console.log('🔄 Обнаружена новая версия, перезагружаю...');
+                localStorage.setItem('arm_bet_version', APP_VERSION);
+                // Принудительная перезагрузка с очисткой кэша
+                location.reload(true);
+                return false; // Останавливаем выполнение
+            }
+            
+            // Сохраняем текущую версию
+            localStorage.setItem('arm_bet_version', APP_VERSION);
+            return true;
+        }
+        
+        // Проверяем версию ДО загрузки данных
+        if (!checkVersion()) {
+            // Показываем загрузку если перезагружаем
+            document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#fff;">Обновление...</div>';
+        }
+        // ============================================
         
         const tg = window.Telegram.WebApp;
         tg.ready();
