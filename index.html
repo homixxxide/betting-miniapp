@@ -99,10 +99,10 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-12 18:53:38
+        // Сгенерировано: 2026-03-12 18:55:01
         
         // ========== АВТООБНОВЛЕНИЕ ВЕРСИИ (ПРИНУДИТЕЛЬНЫЙ ОБХОД КЭША) ==========
-        const APP_VERSION = '// Сгенерировано: 2026-03-12 18:53:38'; // Версия генерируется автоматически
+        const APP_VERSION = '// Сгенерировано: 2026-03-12 18:55:01'; // Версия генерируется автоматически
         
         function checkAndReloadIfNeeded() {
             const storedVersion = localStorage.getItem('arm_bet_version');
@@ -169,7 +169,29 @@
         }
 
         // ДАННЫЕ ИЗ БАЗЫ
-        const matchesData = [];
+        const matchesData = [
+            {
+                        "match_id": 23,
+                        "status": "upcoming",
+                        "league": "ARM BET Championship",
+                        "team1": {
+                                    "team_id": 21,
+                                    "name": "Тест1",
+                                    "emoji": "🔵"
+                        },
+                        "team2": {
+                                    "team_id": 24,
+                                    "name": "ТЕСТ 2",
+                                    "emoji": ""
+                        },
+                        "odds1": 2.0,
+                        "odds2": 2.0,
+                        "bet_distribution": {
+                                    "team1": 50,
+                                    "team2": 50
+                        }
+            }
+];
         const userData = {
             "balance": 500,
             "bets_count": 0
