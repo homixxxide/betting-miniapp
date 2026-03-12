@@ -99,10 +99,10 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-12 19:00:01
+        // Сгенерировано: 2026-03-12 19:05:01
         
         // ========== АВТООБНОВЛЕНИЕ ВЕРСИИ (ПРИНУДИТЕЛЬНЫЙ ОБХОД КЭША) ==========
-        const APP_VERSION = '// Сгенерировано: 2026-03-12 19:00:01'; // Версия генерируется автоматически
+        const APP_VERSION = '// Сгенерировано: 2026-03-12 19:05:01'; // Версия генерируется автоматически
         
         function checkAndReloadIfNeeded() {
             const storedVersion = localStorage.getItem('arm_bet_version');
@@ -184,11 +184,11 @@
                                     "name": "ТЕСТ 2",
                                     "emoji": ""
                         },
-                        "odds1": 2.0,
-                        "odds2": 2.0,
+                        "odds1": 1.1,
+                        "odds2": 3.0,
                         "bet_distribution": {
-                                    "team1": 50,
-                                    "team2": 50
+                                    "team1": 100,
+                                    "team2": 0
                         }
             }
 ];
@@ -199,20 +199,29 @@
         const leaderboardData = [
             {
                         "rank": 1,
-                        "username": "homixidehomixide555opiumopium",
-                        "user_id": 6611491689,
-                        "balance": 2000,
-                        "bets": 2
-            },
-            {
-                        "rank": 2,
                         "username": "opium555YVL",
                         "user_id": 8004750966,
                         "balance": 500,
                         "bets": 0
+            },
+            {
+                        "rank": 2,
+                        "username": "homixidehomixide555opiumopium",
+                        "user_id": 6611491689,
+                        "balance": 0,
+                        "bets": 3
             }
 ];
         const allBetsData = [
+            {
+                        "bet_id": 169,
+                        "match_id": 23,
+                        "user_id": 6611491689,
+                        "amount": 2000,
+                        "odds": 2.0,
+                        "status": "active",
+                        "team": "🔵 Тест1"
+            },
             {
                         "bet_id": 168,
                         "match_id": 22,
