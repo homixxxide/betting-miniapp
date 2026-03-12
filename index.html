@@ -99,7 +99,7 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-12 19:20:01
+        // Сгенерировано: 2026-03-12 19:25:00
         
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -229,16 +229,21 @@
         }
 
         let currentBet = {};
+        let dataLoaded = false; // Флаг что данные загружены
 
         // ========== АВТООБНОВЛЕНИЕ ДАННЫХ БЕЗ ПЕРЕЗАГРУЗКИ ==========
         let isUpdating = false;
         
-        async function fetchFreshData() {
+        async function fetchFreshData(isInitial = false) {
             if (isUpdating) return; // Предотвращаем множественные одновременные запросы
             
             try {
                 isUpdating = true;
-                console.log('🔄 Загружаю свежие данные...');
+                if (isInitial) {
+                    console.log('🚀 Первая загрузка данных...');
+                } else {
+                    console.log('🔄 Обновление данных...');
+                }
                 
                 // Fetch с cache-busting (обход кэша!)
                 const timestamp = Date.now();
@@ -252,6 +257,11 @@
                 
                 if (!response.ok) {
                     console.error('❌ Ошибка загрузки данных:', response.status);
+                    // При ошибке используем данные из кэша
+                    if (isInitial) {
+                        dataLoaded = true;
+                        init();
+                    }
                     return;
                 }
                 
@@ -262,42 +272,58 @@
                 const leaderboardMatch = html.match(/let leaderboardData = (\[[\s\S]*?\]);/);
                 const betsMatch = html.match(/let allBetsData = (\[[\s\S]*?\]);/);
                 
+                let dataUpdated = false;
+                
                 if (matchesMatch) {
                     const newMatchesData = JSON.parse(matchesMatch[1]);
-                    // Проверяем изменились ли данные
-                    if (JSON.stringify(matchesData) !== JSON.stringify(newMatchesData)) {
+                    // Всегда обновляем данные при первой загрузке
+                    if (isInitial || JSON.stringify(matchesData) !== JSON.stringify(newMatchesData)) {
                         console.log('✅ Обновлены матчи:', newMatchesData.length);
                         matchesData = newMatchesData;
+                        dataUpdated = true;
                     }
                 }
                 
                 if (leaderboardMatch) {
                     const newLeaderboardData = JSON.parse(leaderboardMatch[1]);
-                    if (JSON.stringify(leaderboardData) !== JSON.stringify(newLeaderboardData)) {
+                    if (isInitial || JSON.stringify(leaderboardData) !== JSON.stringify(newLeaderboardData)) {
                         console.log('✅ Обновлен leaderboard:', newLeaderboardData.length);
                         leaderboardData = newLeaderboardData;
-                        updateBalance(); // Обновляем баланс
+                        dataUpdated = true;
                     }
                 }
                 
                 if (betsMatch) {
                     const newBetsData = JSON.parse(betsMatch[1]);
-                    if (JSON.stringify(allBetsData) !== JSON.stringify(newBetsData)) {
+                    if (isInitial || JSON.stringify(allBetsData) !== JSON.stringify(newBetsData)) {
                         console.log('✅ Обновлены ставки:', newBetsData.length);
                         allBetsData = newBetsData;
+                        dataUpdated = true;
                     }
                 }
                 
-                // Перерисовываем текущий view если данные изменились
-                const activeView = document.querySelector('.nav-btn.active');
-                if (activeView) {
-                    renderView(activeView.dataset.view);
+                // При первой загрузке - инициализируем приложение
+                if (isInitial) {
+                    dataLoaded = true;
+                    init();
+                } else if (dataUpdated) {
+                    // При обновлении - обновляем баланс и текущий view
+                    updateBalance();
+                    const activeView = document.querySelector('.nav-btn.active');
+                    if (activeView) {
+                        renderView(activeView.dataset.view);
+                    }
                 }
                 
                 console.log('✅ Данные обновлены!');
                 
             } catch (error) {
                 console.error('❌ Ошибка обновления данных:', error);
+                // При ошибке используем данные из кэша
+                if (isInitial) {
+                    dataLoaded = true;
+                    init();
+                }
             } finally {
                 isUpdating = false;
             }
@@ -307,18 +333,12 @@
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 console.log('👁️ Приложение стало видимым, обновляю данные...');
-                setTimeout(fetchFreshData, 500); // Небольшая задержка
+                setTimeout(() => fetchFreshData(false), 500);
             }
         });
         
         // Периодическое автообновление каждые 30 секунд
-        setInterval(fetchFreshData, 30000);
-        
-        // Первое обновление через 3 секунды после загрузки
-        setTimeout(() => {
-            console.log('🚀 Первое автообновление...');
-            fetchFreshData();
-        }, 3000);
+        setInterval(() => fetchFreshData(false), 30000);
         // ============================================
 
         function init() {
@@ -572,7 +592,23 @@
             closeModal();
         }
 
-        init();
+        // ========== ЗАПУСК ПРИЛОЖЕНИЯ ==========
+        // Показываем индикатор загрузки
+        document.getElementById('content').innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; gap: 16px;">
+                <div style="width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <div style="color: var(--text-muted); font-size: 14px;">Загрузка актуальных данных...</div>
+            </div>
+            <style>
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        
+        // Делаем первый fetch для получения свежих данных
+        // После успешного fetch автоматически вызовется init()
+        fetchFreshData(true);
     </script>
 </body>
 </html>
