@@ -99,7 +99,7 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-03-13 02:30:01
+        // Сгенерировано: 2026-03-13 02:35:01
         
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -126,7 +126,29 @@
         }
 
         // ДАННЫЕ ИЗ БАЗЫ
-        let matchesData = [];
+        let matchesData = [
+            {
+                        "match_id": 29,
+                        "status": "upcoming",
+                        "league": "ARM BET Championship",
+                        "team1": {
+                                    "team_id": 21,
+                                    "name": "Тест1",
+                                    "emoji": "🔵"
+                        },
+                        "team2": {
+                                    "team_id": 22,
+                                    "name": "Тест2",
+                                    "emoji": "🔴"
+                        },
+                        "odds1": 2.0,
+                        "odds2": 2.0,
+                        "bet_distribution": {
+                                    "team1": 50,
+                                    "team2": 50
+                        }
+            }
+];
         let userData = {
             "balance": 500,
             "bets_count": 0
