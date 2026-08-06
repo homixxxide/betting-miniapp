@@ -99,7 +99,7 @@
     </div>
 
     <script>
-        // Сгенерировано: 2026-08-06 15:30:01
+        // Сгенерировано: 2026-08-06 15:35:01
         
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -141,11 +141,11 @@
                                     "name": "test 2",
                                     "emoji": ""
                         },
-                        "odds1": 2.0,
-                        "odds2": 2.0,
+                        "odds1": 1.1,
+                        "odds2": 3.0,
                         "bet_distribution": {
-                                    "team1": 50,
-                                    "team2": 50
+                                    "team1": 100,
+                                    "team2": 0
                         }
             }
 ];
@@ -167,9 +167,26 @@
                         "user_id": 8596574713,
                         "balance": 500,
                         "bets": 0
+            },
+            {
+                        "rank": 3,
+                        "username": "Pipidastr_1488228",
+                        "user_id": 7000931166,
+                        "balance": 0,
+                        "bets": 1
             }
 ];
-        let allBetsData = [];
+        let allBetsData = [
+            {
+                        "bet_id": 512,
+                        "match_id": 69,
+                        "user_id": 7000931166,
+                        "amount": 500,
+                        "odds": 2.0,
+                        "status": "active",
+                        "team": "ssss 3"
+            }
+];
 
         // Если всё равно не получили ID - используем первого из базы
         if (!currentUserId && leaderboardData && leaderboardData.length > 0) {
